@@ -1,9 +1,9 @@
 # Create IoT Hub and Device to Cloud Consumer Group
 
-<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FFalconwmua%2FAtlantaIOTMay%2Ffeature%2FARMTemplate%2FCode%2FARMTemplate%2Fazuredeploy.json" target="_blank">
+<a href="https://portal.azure.com/#create/Microsoft.Template/uri/https%3A%2F%2Fraw.githubusercontent.com%2FFalconwmua%2FAtlantaIOTMay%2Fmaster%2FCode%2FARMTemplate%2Fazuredeploy.json" target="_blank">
     <img src="http://azuredeploy.net/deploybutton.png"/>
 </a>
-<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FFalconwmua%2FAtlantaIOTMay%2Ffeature%2FARMTemplate%2FCode%2FARMTemplate%2Fazuredeploy.json" target="_blank">
+<a href="http://armviz.io/#/?load=https%3A%2F%2Fraw.githubusercontent.com%2FFalconwmua%2FAtlantaIOTMay%2Fmaster%2FCode%2FARMTemplate%2Fazuredeploy.json" target="_blank">
     <img src="http://armviz.io/visualizebutton.png"/>
 </a>
 
