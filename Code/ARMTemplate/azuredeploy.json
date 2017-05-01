@@ -92,10 +92,53 @@
       "metadata": {
         "description": "Name of device-to-cloud consumer group to provision on the IoT Hub instance."
       }
-    }
+    },
+	"jobiothubsharedaccesspolicyname": {
+      "type": "string",
+      "defaultValue": "iothubowner",
+	  "metadata": {
+        "description": "The shared access policy name to be used by the stream analytics job."
+      }
+    },
+	"streamjobname": {
+      "type": "string",
+      "defaultValue": "demoIoTStreamProcessor",
+	  "metadata": {
+        "description": "The name for the stream analytics job."
+      }
+    },
+	"streamjobquery": {
+      "type": "string",
+      "defaultValue": "SELECT deviceid, System.Timestamp EventTimeUTC, DATEADD(hour, -4, System.Timestamp) EventTimeEDT, DATEADD(hour, -5, System.Timestamp) EventTimeEST, 30 TargetHumidity, 20.0 TargetTemperatureC, 68.0 TargetTemperatureF, avg(CAST(temperatureC AS float)) average_temperatureC, avg(CAST(temperatureC AS float) * 9/5 + 32) average_temperatureF, avg(CAST(humidity AS bigint)) humidity INTO [demoPowerBi] FROM [demoIoTHub] TIMESTAMP BY EventEnqueuedUtcTime GROUP BY TumblingWindow( hour , 1 ), deviceid",
+	  "metadata": {
+        "description": "The transformation query to be used by the stream analytics job."
+      }
+    },
+	"streamingunits": {
+	  "type": "int",
+	  "defaultValue": 1,
+	  "metadata": {
+		"description": "The number of streaming units to be used by the stream analytics job."
+	  }
+	},
+	"inputname": {
+	  "type": "string",
+	  "defaultValue": "demoIoTHub",
+	  "metadata": {
+		"description": "The alias of the IoT hub input to be used by the stream analytics job."
+	  }
+	},
+	"outputname": {
+	  "type": "string",
+	  "defaultValue": "demoPowerBi",
+	  "metadata": {
+		"description": "The alias of the Power BI output to be used by the stream analytics job."
+	  }
+	}
   },
   "variables": {
     "apiVersion": "2016-02-03",
+	"saApiVersion": "2015-09-01",
     "location": "[resourceGroup().location]"
   },
   "resources": [
@@ -134,6 +177,54 @@
       ],
       "name": "[concat(parameters('iotHubName'), '/events/',parameters('d2cConsumerGroupName'))]",
       "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups"
+    },
+	{
+      "apiVersion": "[variables('saApiVersion')]",
+      "type": "Microsoft.StreamAnalytics/StreamingJobs",
+      "name": "[parameters('streamjobname')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "sku": { "name": "Standard" },
+        "inputs": [
+          {
+            "name": "[parameters('inputname')]",
+            "properties": {
+              "type": "Stream",
+              "serialization": {
+                "type": "Json",
+                "properties": { "encoding": "UTF8" }
+              },
+              "datasource": {
+                "type": "Microsoft.Devices/IotHubs",
+                "properties": {
+                  "ConsumerGroupName": "[parameters('d2cConsumerGroupName')]",
+                  "IotHubNamespace": "[parameters('iothubname')]",
+                  "SharedAccessPolicyKey": "[listkeys(resourceId('Microsoft.Devices/IotHubs/IotHubKeys',parameters('iothubname'), parameters('jobiothubsharedaccesspolicyname')),'2016-02-03').primaryKey]",
+                  "SharedAccessPolicyName": "[parameters('jobiothubsharedaccesspolicyname')]"
+                }
+              }
+            }
+          }
+        ],
+        "transformation": {
+          "name": "[parameters('streamjobname')]",
+          "properties": {
+            "streamingUnits": "[parameters('streamingunits')]",
+            "query": "[parameters('streamjobquery')]"
+          }
+        },
+        "outputs": [
+          {
+            "Name": "[parameters('outputname')]",
+            "Properties": {
+			  "DataSource": null,
+			  "Serialization": null
+			}
+          }
+        ]
+      },
+      "dependsOn": [
+      ]
     }
   ],
   "outputs": {
