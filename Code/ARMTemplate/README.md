@@ -13,3 +13,9 @@ FEATURE
 </a>
 
 This template creates an IoT Hub instance with device to cloud and cloud to device messaging configurations and a device to cloud consumer group. For more information, go to: https://azure.microsoft.com/en-in/documentation/services/iot-hub/
+
+#Additional Setup
+You will need to create the output named "demoPowerBi" for the stream analytics job created.
+<a href="https://docs.microsoft.com/en-us/azure/stream-analytics/stream-analytics-define-outputs#power-bi" target="_blank">
+	Setup Power BI Output
+</a>

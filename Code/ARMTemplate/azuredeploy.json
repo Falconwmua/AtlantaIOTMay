@@ -127,13 +127,6 @@
 	  "metadata": {
 		"description": "The alias of the IoT hub input to be used by the stream analytics job."
 	  }
-	},
-	"outputname": {
-	  "type": "string",
-	  "defaultValue": "demoPowerBi",
-	  "metadata": {
-		"description": "The alias of the Power BI output to be used by the stream analytics job."
-	  }
 	}
   },
   "variables": {
@@ -214,13 +207,6 @@
           }
         },
         "outputs": [
-          {
-            "Name": "[parameters('outputname')]",
-            "Properties": {
-			  "DataSource": null,
-			  "Serialization": null
-			}
-          }
         ]
       },
       "dependsOn": [
