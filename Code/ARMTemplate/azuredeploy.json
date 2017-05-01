@@ -1,0 +1,223 @@
+{
+  "$schema": "http://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "iotHubName": {
+      "type": "string",
+      "minLength": 3,
+      "metadata": {
+        "description": "Name of the IoT Hub instance to provision."
+      }
+    },
+    "skuName": {
+      "type": "string",
+      "allowedValues": [
+        "F1",
+        "S1",
+        "S2"
+      ],
+      "defaultValue": "F1",
+      "metadata": {
+        "description": "One of the supported SKUs: F1, S1 or S2"
+      }
+    },
+    "capacityUnits": {
+      "type": "int",
+      "minValue": 1,
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Number of desired IoT Hub units. Restricted to 1 unit for F1. Can be set up to maximum number allowed for subscription."
+      }
+    },
+    "d2cMessageRetentionInDaysPeriod": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 7,
+      "defaultValue": 1,
+      "metadata": {
+        "description": "Retention time in days for device-to-cloud messages."
+      }
+    },
+    "d2cPartitionCount": {
+      "type": "int",
+      "minValue": 2,
+      "defaultValue": 2,
+      "metadata": {
+        "description": "Number of desired partitions for device-to-cloud event ingestion."
+      }
+    },
+    "c2dMessagesTTLAsIso8601": {
+      "type": "string",
+      "defaultValue": "PT1H",
+      "metadata": {
+        "description": "Default TTL in ISO_8601 format for cloud-to-device messages. The value can range from PT1M to PT2D (or any other format as per ISO_8601 standards for duration)."
+      }
+    },
+    "c2dMessagesMaxDeliveryCount": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 100,
+      "defaultValue": 10,
+      "metadata": {
+        "description": "Maximum delivery count for cloud-to-device messages per-device queues."
+      }
+    },
+    "c2dFeebackMessagesTTLAsIso8601": {
+      "type": "string",
+      "defaultValue": "PT1H",
+      "metadata": {
+        "description": "TTL in ISO_8601 format for service-bound feedback messages. The value can range from PT1M to PT2D (or any other format as per ISO_8601 standards for duration)."
+      }
+    },
+    "c2dFeedbackMessagesMaxDeliveryCount": {
+      "type": "int",
+      "minValue": 1,
+      "maxValue": 100,
+      "defaultValue": 10,
+      "metadata": {
+        "description": "Maximum delivery count for feedback queue."
+      }
+    },
+    "c2dFeedbackMessagesLockDurationAsIso8601": {
+      "type": "string",
+      "defaultValue": "PT60S",
+      "metadata": {
+        "description": "Lock duration in ISO_8601 format for service-bound feedback messages. The value can range from PT5S to PT300S (or any other format as per ISO_8601 standards for duration)."
+      }
+    },
+    "d2cConsumerGroupName": {
+      "type": "string",
+      "minLength": 3,
+      "defaultValue": "cg1",
+      "metadata": {
+        "description": "Name of device-to-cloud consumer group to provision on the IoT Hub instance."
+      }
+    },
+	"jobiothubsharedaccesspolicyname": {
+      "type": "string",
+      "defaultValue": "iothubowner",
+	  "metadata": {
+        "description": "The shared access policy name to be used by the stream analytics job."
+      }
+    },
+	"streamjobname": {
+      "type": "string",
+      "defaultValue": "demoIoTStreamProcessor",
+	  "metadata": {
+        "description": "The name for the stream analytics job."
+      }
+    },
+	"streamjobquery": {
+      "type": "string",
+      "defaultValue": "SELECT deviceid, System.Timestamp EventTimeUTC, DATEADD(hour, -4, System.Timestamp) EventTimeEDT, DATEADD(hour, -5, System.Timestamp) EventTimeEST, 30 TargetHumidity, 20.0 TargetTemperatureC, 68.0 TargetTemperatureF, avg(CAST(temperatureC AS float)) average_temperatureC, avg(CAST(temperatureC AS float) * 9/5 + 32) average_temperatureF, avg(CAST(humidity AS bigint)) humidity INTO [demoPowerBi] FROM [demoIoTHub] TIMESTAMP BY EventEnqueuedUtcTime GROUP BY TumblingWindow( hour , 1 ), deviceid",
+	  "metadata": {
+        "description": "The transformation query to be used by the stream analytics job."
+      }
+    },
+	"streamingunits": {
+	  "type": "int",
+	  "defaultValue": 1,
+	  "metadata": {
+		"description": "The number of streaming units to be used by the stream analytics job."
+	  }
+	},
+	"inputname": {
+	  "type": "string",
+	  "defaultValue": "demoIoTHub",
+	  "metadata": {
+		"description": "The alias of the IoT hub input to be used by the stream analytics job."
+	  }
+	}
+  },
+  "variables": {
+    "apiVersion": "2016-02-03",
+	"saApiVersion": "2015-09-01",
+    "location": "[resourceGroup().location]"
+  },
+  "resources": [
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "location": "[variables('location')]",
+      "name": "[parameters('iotHubName')]",
+      "properties": {
+        "eventHubEndpoints": {
+          "events": {
+            "retentionTimeInDays": "[parameters('d2cMessageRetentionInDaysPeriod')]",
+            "partitionCount": "[parameters('d2cPartitionCount')]"
+          }
+        },
+        "cloudToDevice": {
+          "defaultTtlAsIso8601": "[parameters('c2dMessagesTTLAsIso8601')]",
+          "maxDeliveryCount": "[parameters('c2dMessagesMaxDeliveryCount')]",
+          "feedback": {
+            "maxDeliveryCount": "[parameters('c2dFeedbackMessagesMaxDeliveryCount')]",
+            "ttlAsIso8601": "[parameters('c2dFeebackMessagesTTLAsIso8601')]",
+            "lockDurationAsIso8601": "[parameters('c2dFeedbackMessagesLockDurationAsIso8601')]"
+          }
+        },
+        "location": "[resourceGroup().location]"
+      },
+      "sku": {
+        "name": "[parameters('skuName')]",
+        "capacity": "[parameters('capacityUnits')]"
+      },
+      "type": "Microsoft.Devices/iotHubs"
+    },
+    {
+      "apiVersion": "[variables('apiVersion')]",
+      "dependsOn": [
+        "[concat('Microsoft.Devices/iothubs/', parameters('iotHubName'))]"
+      ],
+      "name": "[concat(parameters('iotHubName'), '/events/',parameters('d2cConsumerGroupName'))]",
+      "type": "Microsoft.Devices/iotHubs/eventhubEndpoints/ConsumerGroups"
+    },
+	{
+      "apiVersion": "[variables('saApiVersion')]",
+      "type": "Microsoft.StreamAnalytics/StreamingJobs",
+      "name": "[parameters('streamjobname')]",
+      "location": "[variables('location')]",
+      "properties": {
+        "sku": { "name": "Standard" },
+        "inputs": [
+          {
+            "name": "[parameters('inputname')]",
+            "properties": {
+              "type": "Stream",
+              "serialization": {
+                "type": "Json",
+                "properties": { "encoding": "UTF8" }
+              },
+              "datasource": {
+                "type": "Microsoft.Devices/IotHubs",
+                "properties": {
+                  "ConsumerGroupName": "[parameters('d2cConsumerGroupName')]",
+                  "IotHubNamespace": "[parameters('iothubname')]",
+                  "SharedAccessPolicyKey": "[listkeys(resourceId('Microsoft.Devices/IotHubs/IotHubKeys',parameters('iothubname'), parameters('jobiothubsharedaccesspolicyname')),'2016-02-03').primaryKey]",
+                  "SharedAccessPolicyName": "[parameters('jobiothubsharedaccesspolicyname')]"
+                }
+              }
+            }
+          }
+        ],
+        "transformation": {
+          "name": "[parameters('streamjobname')]",
+          "properties": {
+            "streamingUnits": "[parameters('streamingunits')]",
+            "query": "[parameters('streamjobquery')]"
+          }
+        },
+        "outputs": [
+        ]
+      },
+      "dependsOn": [
+		"[concat('Microsoft.Devices/iothubs/', parameters('iotHubName'))]"
+      ]
+    }
+  ],
+  "outputs": {
+    "iotHubKeys": {
+      "value": "[listKeys(resourceId('Microsoft.Devices/iotHubs', parameters('iotHubName')), variables('apiVersion'))]",
+      "type": "object"
+    }
+  }
+}
