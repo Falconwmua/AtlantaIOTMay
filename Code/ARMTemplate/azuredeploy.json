@@ -224,6 +224,7 @@
         ]
       },
       "dependsOn": [
+		"[concat('Microsoft.Devices/iothubs/', parameters('iotHubName'))]"
       ]
     }
   ],
