@@ -1,5 +1,5 @@
 # Pi 3 - Windows IoT Core GrovePi
-This folder contains the sample code used to capture the temperature and pressure using a BMP180 sensor with C# and Azure IoT Hub.
+This folder contains the sample code used to capture the temperature and humidity using a GrovePi and Seeed DHT sensor with C# and Azure IoT Hub.
 
 ## How to run the sample
 In order to run the device samples you will first need the following prerequisites:
